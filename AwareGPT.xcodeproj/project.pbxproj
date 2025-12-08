@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E1AF1B482EE64AD200193CE3 /* SwiftLlama in Frameworks */ = {isa = PBXBuildFile; productRef = E1AF1B472EE64AD200193CE3 /* SwiftLlama */; };
+		E1AF1B512EE6809300193CE3 /* onnxruntime in Frameworks */ = {isa = PBXBuildFile; productRef = E1AF1B502EE6809300193CE3 /* onnxruntime */; };
+		E1AF1B532EE6809300193CE3 /* onnxruntime_extensions in Frameworks */ = {isa = PBXBuildFile; productRef = E1AF1B522EE6809300193CE3 /* onnxruntime_extensions */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E1AF1B2B2EE62BD900193CE3 /* AwareGPT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AwareGPT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +29,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E1AF1B512EE6809300193CE3 /* onnxruntime in Frameworks */,
+				E1AF1B482EE64AD200193CE3 /* SwiftLlama in Frameworks */,
+				E1AF1B532EE6809300193CE3 /* onnxruntime_extensions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +74,9 @@
 			);
 			name = AwareGPT;
 			packageProductDependencies = (
+				E1AF1B472EE64AD200193CE3 /* SwiftLlama */,
+				E1AF1B502EE6809300193CE3 /* onnxruntime */,
+				E1AF1B522EE6809300193CE3 /* onnxruntime_extensions */,
 			);
 			productName = AwareGPT;
 			productReference = E1AF1B2B2EE62BD900193CE3 /* AwareGPT.app */;
@@ -94,6 +106,10 @@
 			);
 			mainGroup = E1AF1B222EE62BD900193CE3;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				E1AF1B462EE64AD200193CE3 /* XCRemoteSwiftPackageReference "swift-llama-cpp" */,
+				E1AF1B4F2EE6809300193CE3 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E1AF1B2C2EE62BD900193CE3 /* Products */;
 			projectDirPath = "";
@@ -184,6 +200,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -241,6 +258,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -256,6 +274,7 @@
 				DEVELOPMENT_TEAM = F2HQ34U7Y3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = AwareGPT;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -288,6 +307,7 @@
 				DEVELOPMENT_TEAM = F2HQ34U7Y3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = AwareGPT;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,6 +352,43 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		E1AF1B462EE64AD200193CE3 /* XCRemoteSwiftPackageReference "swift-llama-cpp" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/pgorzelany/swift-llama-cpp";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+		E1AF1B4F2EE6809300193CE3 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/onnxruntime-swift-package-manager";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.20.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E1AF1B472EE64AD200193CE3 /* SwiftLlama */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1AF1B462EE64AD200193CE3 /* XCRemoteSwiftPackageReference "swift-llama-cpp" */;
+			productName = SwiftLlama;
+		};
+		E1AF1B502EE6809300193CE3 /* onnxruntime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1AF1B4F2EE6809300193CE3 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */;
+			productName = onnxruntime;
+		};
+		E1AF1B522EE6809300193CE3 /* onnxruntime_extensions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1AF1B4F2EE6809300193CE3 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */;
+			productName = onnxruntime_extensions;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = E1AF1B232EE62BD900193CE3 /* Project object */;
 }

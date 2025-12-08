@@ -1,0 +1,24 @@
+{
+  "originHash" : "4715e7eb6703a58259a07a112b275d509e6ae93f0ee30414178c4210539f16ce",
+  "pins" : [
+    {
+      "identity" : "onnxruntime-swift-package-manager",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/microsoft/onnxruntime-swift-package-manager",
+      "state" : {
+        "revision" : "12ce7374c86944e1f68f3a866d10105d8357f074",
+        "version" : "1.20.0"
+      }
+    },
+    {
+      "identity" : "swift-llama-cpp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pgorzelany/swift-llama-cpp",
+      "state" : {
+        "revision" : "5496bc7c9820f04bba7268dc8a271235deae436d",
+        "version" : "1.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}

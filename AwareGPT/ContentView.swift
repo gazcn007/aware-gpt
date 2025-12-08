@@ -5,20 +5,35 @@
 //  Created by Carl Liu on 2025-12-07.
 //
 
+import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-    var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+  @State private var selectedConversation: Conversation?
+  @Environment(\.horizontalSizeClass) var horizontalSizeClass
+
+  var body: some View {
+    NavigationSplitView {
+      HistoryView(selectedConversation: $selectedConversation)
+    } detail: {
+      if let conversation = selectedConversation {
+        ChatView(conversation: conversation)
+      } else {
+        VStack(spacing: 20) {
+          Image(systemName: "bubble.left.and.bubble.right")
+            .font(.system(size: 60))
+            .foregroundStyle(.tint)
+          Text("Select or start a new chat")
+            .font(.title2)
+            .foregroundColor(.secondary)
         }
-        .padding()
+      }
     }
+  }
 }
 
 #Preview {
-    ContentView()
+  ContentView()
+    .modelContainer(for: Conversation.self, inMemory: true)
+    .environmentObject(LLMService())
 }
