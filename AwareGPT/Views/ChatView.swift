@@ -19,6 +19,7 @@ struct ChatView: View {
   @State private var scrollProxy: ScrollViewProxy?
   @State private var hasStartedLoading = false
   @State private var isFirstMessage = false
+  @State private var showAnalytics = false
 
   @AppStorage("systemPrompt") private var systemPrompt = "You are a helpful assistant."
   @AppStorage("temperature") private var temperature = 0.7
@@ -144,6 +145,19 @@ struct ChatView: View {
     }
     .navigationTitle(conversation.title)
     .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button(action: {
+          showAnalytics = true
+        }) {
+          Image(systemName: "chart.bar.fill")
+            .foregroundColor(.accentColor)
+        }
+      }
+    }
+    .sheet(isPresented: $showAnalytics) {
+      ChatAnalyticsView(conversation: conversation)
+    }
     .onAppear {
       // Start loading model when chat view appears
       if !hasStartedLoading && !llmService.isModelLoaded {
