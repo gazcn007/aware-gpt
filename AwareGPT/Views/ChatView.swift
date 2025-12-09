@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct ChatView: View {
   @Environment(\.modelContext) private var modelContext
@@ -16,70 +17,105 @@ struct ChatView: View {
   @State private var inputText: String = ""
   @State private var isGenerating: Bool = false
   @State private var scrollProxy: ScrollViewProxy?
+  @State private var hasStartedLoading = false
+  @State private var isFirstMessage = false
 
   @AppStorage("systemPrompt") private var systemPrompt = "You are a helpful assistant."
   @AppStorage("temperature") private var temperature = 0.7
   @AppStorage("seed") private var seed = 42
   @AppStorage("useRandomSeed") private var useRandomSeed = true
+  @AppStorage("hapticFeedback") private var hapticFeedback = true
+  @AppStorage("hasSentFirstMessage") private var hasSentFirstMessage = false
 
   var body: some View {
-    VStack(spacing: 0) {
-      ScrollViewReader { proxy in
-        ScrollView {
-          LazyVStack(spacing: 16) {
-            ForEach(conversation.messages.sorted(by: { $0.createdAt < $1.createdAt })) { message in
-              MessageBubble(message: message)
-                .id(message.id)
-            }
+    ZStack {
+      VStack(spacing: 0) {
+        ScrollViewReader { proxy in
+          ScrollView {
+            LazyVStack(spacing: 16) {
+              ForEach(conversation.messages.sorted(by: { $0.createdAt < $1.createdAt })) {
+                message in
+                MessageBubble(message: message)
+                  .id(message.id)
+              }
 
-            if isGenerating {
-              HStack {
-                ProgressView()
-                  .padding()
-                Spacer()
+              if isGenerating {
+                HStack {
+                  ProgressView()
+                    .padding()
+                  Spacer()
+                }
               }
             }
+            .padding()
+          }
+          .onChange(of: conversation.messages) {
+            scrollToBottom(proxy: proxy)
+          }
+          .onAppear {
+            self.scrollProxy = proxy
+            scrollToBottom(proxy: proxy)
+          }
+        }
+
+        VStack(spacing: 0) {
+          Divider()
+          HStack(alignment: .bottom) {
+            TextField("Message...", text: $inputText, axis: .vertical)
+              .padding(10)
+              .background(Color(.secondarySystemBackground))
+              .cornerRadius(20)
+              .lineLimit(1...5)
+              .disabled(!llmService.isModelLoaded || isGenerating)
+
+            Button(action: sendMessage) {
+              Image(systemName: "arrow.up.circle.fill")
+                .resizable()
+                .frame(width: 32, height: 32)
+            }
+            .disabled(
+              inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isGenerating
+                || !llmService.isModelLoaded
+            )
+            .padding(.bottom, 2)
           }
           .padding()
         }
-        .onChange(of: conversation.messages) {
-          scrollToBottom(proxy: proxy)
-        }
-        .onAppear {
-          self.scrollProxy = proxy
-          scrollToBottom(proxy: proxy)
-        }
+        .background(.regularMaterial)
       }
 
-      VStack(spacing: 0) {
-        Divider()
-        HStack(alignment: .bottom) {
-          TextField("Message...", text: $inputText, axis: .vertical)
-            .padding(10)
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(20)
-            .lineLimit(1...5)
-
-          Button(action: sendMessage) {
-            Image(systemName: "arrow.up.circle.fill")
-              .resizable()
-              .frame(width: 32, height: 32)
-          }
-          .disabled(
-            inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isGenerating
-          )
-          .padding(.bottom, 2)
-        }
-        .padding()
+      // Loading overlay when model is not loaded
+      if !llmService.isModelLoaded && llmService.error == nil {
+        ModelLoadingOverlay()
       }
-      .background(.regularMaterial)
+
+      // Loading overlay during generation - only show on first message
+      if isGenerating && llmService.isModelLoaded && isFirstMessage {
+        GeneratingOverlay()
+      }
     }
     .navigationTitle(conversation.title)
     .navigationBarTitleDisplayMode(.inline)
+    .onAppear {
+      // Start loading model when chat view appears
+      if !hasStartedLoading && !llmService.isModelLoaded {
+        hasStartedLoading = true
+        Task {
+          await llmService.loadModel()
+        }
+      }
+    }
   }
 
   private func sendMessage() {
     guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+    // Check if this is the first message ever
+    let isFirstEver = !hasSentFirstMessage
+    if isFirstEver {
+      isFirstMessage = true
+      hasSentFirstMessage = true
+    }
 
     let userMessage = Message(role: .user, content: inputText)
     userMessage.conversation = conversation  // Explicitly set relationship
@@ -92,7 +128,16 @@ struct ChatView: View {
     inputText = ""
     isGenerating = true
 
-    Task {
+    Task { @MainActor in
+      // Create and prepare haptic feedback generator on main thread
+      let generator = UIImpactFeedbackGenerator(style: .medium)
+      if hapticFeedback {
+        generator.prepare()
+      }
+      var lastHapticTime: Date = Date()
+      let hapticInterval: TimeInterval = 0.2  // Haptic every 200ms during streaming
+      var tokenCount = 0
+
       let assistantMessage = Message(role: .assistant, content: "")
       assistantMessage.conversation = conversation
       conversation.messages.append(assistantMessage)
@@ -107,25 +152,85 @@ struct ChatView: View {
           seed: currentSeed
         )
 
-        for try await result in stream {
-          // Append text tokens
-          if !result.text.isEmpty {
-            assistantMessage.content += result.text
+        // Use Task.withTimeout pattern for proper timeout handling
+        try await withThrowingTaskGroup(of: Void.self) { group in
+          // Stream processing task
+          group.addTask { @MainActor in
+            for try await result in stream {
+              // Append text tokens
+              if !result.text.isEmpty {
+                assistantMessage.content += result.text
+                tokenCount += 1
+
+                // Haptic feedback during streaming (like ChatGPT)
+                // Must be on main thread
+                if hapticFeedback {
+                  let now = Date()
+                  if now.timeIntervalSince(lastHapticTime) >= hapticInterval {
+                    // Use slightly higher intensity for better feel
+                    generator.impactOccurred(intensity: 0.5)
+                    lastHapticTime = now
+                    // Re-prepare for next haptic
+                    generator.prepare()
+                  }
+                }
+
+                // Save periodically to prevent data loss (every 10 tokens)
+                if tokenCount % 10 == 0 {
+                  try? modelContext.save()
+                }
+              }
+
+              // Update hallucination score when available
+              if let score = result.hallucinationScore {
+                assistantMessage.hallucinationScore = score
+                // Update conversation average confidence
+                updateConversationConfidence()
+              }
+            }
           }
 
-          // Update hallucination score when available
-          if let score = result.hallucinationScore {
-            assistantMessage.hallucinationScore = score
+          // Timeout task
+          group.addTask {
+            try await Task.sleep(nanoseconds: 60_000_000_000)  // 60 seconds
+            throw NSError(
+              domain: "ChatView", code: 1,
+              userInfo: [NSLocalizedDescriptionKey: "Generation timeout after 60 seconds"])
           }
+
+          // Wait for first task to complete (either stream finishes or timeout)
+          try await group.next()
+          group.cancelAll()  // Cancel remaining tasks
         }
 
         // Final save
         try? modelContext.save()
       } catch {
-        assistantMessage.content += "\n[Error: \(error.localizedDescription)]"
+        if assistantMessage.content.isEmpty {
+          assistantMessage.content = "[Error: \(error.localizedDescription)]"
+        } else {
+          assistantMessage.content += "\n\n[Error: \(error.localizedDescription)]"
+        }
+        try? modelContext.save()
       }
 
       isGenerating = false
+      isFirstMessage = false  // Reset after first message completes
+
+      // Final update of conversation confidence
+      updateConversationConfidence()
+    }
+  }
+
+  private func updateConversationConfidence() {
+    // Calculate average confidence from all assistant messages with scores
+    let assistantMessages = conversation.messages.filter { $0.role == .assistant }
+    let scores = assistantMessages.compactMap { $0.hallucinationScore }
+
+    if !scores.isEmpty {
+      let average = scores.reduce(0, +) / Double(scores.count)
+      conversation.averageConfidence = average
+      try? modelContext.save()
     }
   }
 
@@ -148,7 +253,7 @@ struct MessageBubble: View {
           Spacer()
           Text(message.content)
             .padding(12)
-            .background(Color.blue)
+            .background(Color.accentColor)
             .foregroundColor(.white)
             .cornerRadius(16)
             .textSelection(.enabled)

@@ -30,9 +30,7 @@ class LLMService: ObservableObject {
       maxTokenCount: 2048,
       useGPU: true
     )
-    Task {
-      await loadModel()
-    }
+    // Don't load model automatically - will be loaded when chat opens
   }
 
   func loadModel() async {
@@ -90,12 +88,28 @@ class LLMService: ObservableObject {
             of: llamaMessages, samplingConfig: samplingConfig)
 
           var fullText = ""
+          var tokenCount = 0
+          let maxTokens = 1000  // Safety limit to prevent infinite generation
 
           // Forward tokens to our continuation
           for try await token in stream {
             fullText += token
+            tokenCount += 1
+
             // Stream text as it comes
             continuation.yield(ChatResult(text: token, hallucinationScore: nil))
+
+            // Safety check: prevent infinite generation
+            if tokenCount >= maxTokens {
+              print("⚠️ Reached max token limit (\(maxTokens)), stopping generation")
+              break
+            }
+
+            // Check for common stop patterns
+            if fullText.hasSuffix("<|im_end|>") || fullText.hasSuffix("\n\n\n") {
+              // Natural stopping point
+              break
+            }
           }
 
           // After completion, compute hallucination score

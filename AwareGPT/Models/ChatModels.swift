@@ -19,12 +19,27 @@ final class Conversation {
     var id: UUID
     var title: String
     var createdAt: Date
+    var averageConfidence: Double? // 0.0 to 1.0, average confidence score
     @Relationship(deleteRule: .cascade) var messages: [Message] = []
     
     init(title: String = "New Chat") {
         self.id = UUID()
         self.title = title
         self.createdAt = Date()
+        self.averageConfidence = nil
+    }
+    
+    // Computed property to get display title
+    var displayTitle: String {
+        if !title.isEmpty && title != "New Chat" {
+            return title
+        }
+        // Use first user message as title
+        if let firstUserMessage = messages.first(where: { $0.role == .user }) {
+            let preview = String(firstUserMessage.content.prefix(50))
+            return preview.isEmpty ? "New Chat" : preview
+        }
+        return "New Chat"
     }
 }
 

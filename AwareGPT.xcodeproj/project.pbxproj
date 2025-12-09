@@ -10,6 +10,7 @@
 		E1AF1B482EE64AD200193CE3 /* SwiftLlama in Frameworks */ = {isa = PBXBuildFile; productRef = E1AF1B472EE64AD200193CE3 /* SwiftLlama */; };
 		E1AF1B512EE6809300193CE3 /* onnxruntime in Frameworks */ = {isa = PBXBuildFile; productRef = E1AF1B502EE6809300193CE3 /* onnxruntime */; };
 		E1AF1B532EE6809300193CE3 /* onnxruntime_extensions in Frameworks */ = {isa = PBXBuildFile; productRef = E1AF1B522EE6809300193CE3 /* onnxruntime_extensions */; };
+		E1F59F3A2EE7ABE800360D47 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = E1F59F392EE7ABE800360D47 /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 				E1AF1B512EE6809300193CE3 /* onnxruntime in Frameworks */,
 				E1AF1B482EE64AD200193CE3 /* SwiftLlama in Frameworks */,
 				E1AF1B532EE6809300193CE3 /* onnxruntime_extensions in Frameworks */,
+				E1F59F3A2EE7ABE800360D47 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,6 +79,7 @@
 				E1AF1B472EE64AD200193CE3 /* SwiftLlama */,
 				E1AF1B502EE6809300193CE3 /* onnxruntime */,
 				E1AF1B522EE6809300193CE3 /* onnxruntime_extensions */,
+				E1F59F392EE7ABE800360D47 /* Lottie */,
 			);
 			productName = AwareGPT;
 			productReference = E1AF1B2B2EE62BD900193CE3 /* AwareGPT.app */;
@@ -109,6 +112,7 @@
 			packageReferences = (
 				E1AF1B462EE64AD200193CE3 /* XCRemoteSwiftPackageReference "swift-llama-cpp" */,
 				E1AF1B4F2EE6809300193CE3 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */,
+				E1F59F382EE7ABE800360D47 /* XCRemoteSwiftPackageReference "lottie-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = E1AF1B2C2EE62BD900193CE3 /* Products */;
@@ -370,6 +374,14 @@
 				minimumVersion = 1.20.0;
 			};
 		};
+		E1F59F382EE7ABE800360D47 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -387,6 +399,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E1AF1B4F2EE6809300193CE3 /* XCRemoteSwiftPackageReference "onnxruntime-swift-package-manager" */;
 			productName = onnxruntime_extensions;
+		};
+		E1F59F392EE7ABE800360D47 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E1F59F382EE7ABE800360D47 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

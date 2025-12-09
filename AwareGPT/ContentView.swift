@@ -11,6 +11,7 @@ import SwiftUI
 struct ContentView: View {
   @State private var selectedConversation: Conversation?
   @Environment(\.horizontalSizeClass) var horizontalSizeClass
+  @EnvironmentObject var llmService: LLMService
 
   var body: some View {
     NavigationSplitView {
