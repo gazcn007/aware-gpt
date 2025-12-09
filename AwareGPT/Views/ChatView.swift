@@ -58,30 +58,78 @@ struct ChatView: View {
           }
         }
 
-        VStack(spacing: 0) {
-          Divider()
-          HStack(alignment: .bottom) {
+        // Floating Liquid Glass input
+        HStack(alignment: .bottom, spacing: 0) {
+          // Text input with liquid glass effect
+          HStack(alignment: .bottom, spacing: 0) {
             TextField("Message...", text: $inputText, axis: .vertical)
-              .padding(10)
-              .background(Color(.secondarySystemBackground))
-              .cornerRadius(20)
+              .padding(.leading, 20)
+              .padding(.trailing, 12)
+              .padding(.vertical, 14)
               .lineLimit(1...5)
               .disabled(!llmService.isModelLoaded || isGenerating)
 
+            // Send button integrated into input
             Button(action: sendMessage) {
               Image(systemName: "arrow.up.circle.fill")
-                .resizable()
-                .frame(width: 32, height: 32)
+                .font(.system(size: 28, weight: .medium))
+                .foregroundStyle(
+                  inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || isGenerating || !llmService.isModelLoaded
+                    ? Color.secondary.opacity(0.4)
+                    : Color.accentColor
+                )
             }
             .disabled(
               inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isGenerating
                 || !llmService.isModelLoaded
             )
-            .padding(.bottom, 2)
+            .padding(.trailing, 12)
+            .padding(.bottom, 6)
           }
-          .padding()
+          .background {
+            // Floating liquid glass background with advanced blur and gradient
+            ZStack {
+              // Base blur material
+              RoundedRectangle(cornerRadius: 28)
+                .fill(.ultraThinMaterial)
+
+              // Subtle inner glow
+              RoundedRectangle(cornerRadius: 28)
+                .fill(
+                  LinearGradient(
+                    colors: [
+                      .white.opacity(0.15),
+                      .white.opacity(0.05),
+                      .clear,
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  )
+                )
+
+              // Glass border with gradient
+              RoundedRectangle(cornerRadius: 28)
+                .strokeBorder(
+                  LinearGradient(
+                    colors: [
+                      .white.opacity(0.4),
+                      .white.opacity(0.2),
+                      .white.opacity(0.1),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  ),
+                  lineWidth: 1.5
+                )
+            }
+            .shadow(color: .black.opacity(0.12), radius: 24, x: 0, y: 10)
+            .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 5)
+          }
         }
-        .background(.regularMaterial)
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .padding(.bottom, max(12, 0))  // Account for safe area
       }
 
       // Loading overlay when model is not loaded

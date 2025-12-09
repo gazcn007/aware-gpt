@@ -6,14 +6,21 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \Conversation.createdAt) private var conversations: [Conversation]
+    
     @AppStorage("systemPrompt") private var systemPrompt = "You are a helpful assistant similar to ChatGPT."
     @AppStorage("temperature") private var temperature = 0.7
     @AppStorage("seed") private var seed = 42
     @AppStorage("useRandomSeed") private var useRandomSeed = true
     @AppStorage("hapticFeedback") private var hapticFeedback = true
     @AppStorage("contextWindow") private var contextWindow = 2048.0
+    
+    @State private var showClearConfirmation = false
+    @State private var showCustomerStory = false
     
     var body: some View {
         Form {
@@ -84,14 +91,49 @@ struct SettingsView: View {
             }
             
             Section {
+                Button(action: {
+                    showCustomerStory = true
+                }) {
+                    HStack {
+                        Label("Customer Story", systemImage: "book.fill")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
                 Button("Clear conversation history", role: .destructive) {
-                    // Action handled by parent or alert
-                    // Ideally would use SwiftData context to delete all
+                    showClearConfirmation = true
                 }
             }
         }
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(isPresented: $showCustomerStory) {
+            OnboardingView(isPresented: $showCustomerStory)
+        }
+        .alert("Clear All Conversations", isPresented: $showClearConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Clear", role: .destructive) {
+                clearAllConversations()
+            }
+        } message: {
+            Text("This will permanently delete all conversations and messages. This action cannot be undone.")
+        }
+    }
+    
+    private func clearAllConversations() {
+        withAnimation {
+            for conversation in conversations {
+                modelContext.delete(conversation)
+            }
+            do {
+                try modelContext.save()
+            } catch {
+                print("Failed to clear conversations: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
